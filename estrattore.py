@@ -44,7 +44,6 @@ class FCIParser(HTMLParser):
                 nome = self.temp_row[1]
                 squadra = self.temp_row[2]
                 
-                # Salta la riga se è l'intestazione della tabella
                 if nome.lower() != "corridore":
                     self.results.append([
                         nome, 
@@ -53,7 +52,6 @@ class FCIParser(HTMLParser):
                         self.current_race["luogo"], 
                         self.current_race["data"]
                     ])
-            # Svuota sempre la riga alla fine del tag tr
             self.temp_row = []
 
 def main():
@@ -61,7 +59,6 @@ def main():
     path_csv = "risultati_juniores.csv" 
 
     try:
-        # User-Agent per evitare blocchi dal server
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
             html = response.read().decode('utf-8')
@@ -69,17 +66,22 @@ def main():
         parser = FCIParser()
         parser.feed(html)
 
-        # Scrittura del file CSV
+        # --- LOGICA DI ORDINAMENTO ---
+        # Ordiniamo prima per Data (indice 4) e poi per Nome (indice 0)
+        # In Python, sorted è stabile, quindi l'ordine secondario va messo per primo 
+        # oppure si usa una lambda con più chiavi:
+        risultati_ordinati = sorted(parser.results, key=lambda x: (x[0], x[4]))
+        # -----------------------------
+
         with open(path_csv, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
             writer.writerow(["Nome", "Squadra", "Posizione", "Luogo", "Data"])
-            writer.writerows(parser.results)
+            writer.writerows(risultati_ordinati)
 
-        print(f"Successo! File '{path_csv}' aggiornato con {len(parser.results)} atleti.")
+        print(f"Successo! {len(risultati_ordinati)} record ordinati per Nome e Data.")
 
     except Exception as e:
-        print(f"Errore durante l'estrazione: {e}")
+        print(f"Errore: {e}")
 
-# Questa riga è fondamentale per far girare lo script
 if __name__ == "__main__":
     main()
