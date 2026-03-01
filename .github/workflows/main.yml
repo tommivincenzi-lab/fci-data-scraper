@@ -22,8 +22,13 @@ jobs:
 
       - name: Salva e Pusha il CSV nel repository
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add risultati_juniores.csv
+          # Il commit viene creato solo se ci sono modifiche effettive
+          git commit -m "Update dati: $(date)" || exit 0
+          # Il pull --rebase risolve il problema del 'rejected' scaricando prima i tuoi file aggiornati
+          git pull --rebase origin main
+          git pushultati_juniores.csv
           git commit -m "Update dati: $(date)" || exit 0
           git push
